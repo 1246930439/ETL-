@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}数据库配置 - 任务调度系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 工具栏 -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        <div class="btn-toolbar mb-2 mb-md-0">
+        </div>
+    </div>
+
+    <!-- 数据库配置表单 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-plus-circle me-2 text-primary"></i>添加/编辑数据库配置
+            </h5>
+        </div>
+        <div class="card-body">
+            <form id="db-config-form" class="mb-0">
+                <input type="hidden" id="db-config-id">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="db-name" class="form-label">配置名称</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                            <input type="text" class="form-control" id="db-name" placeholder="请输入配置名称" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="db-type" class="form-label">数据库类型</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-server"></i></span>
+                            <select class="form-select" id="db-type" required>
+                                <option value="">选择数据库类型</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="sqlite">SQLite</option>
+                                <option value="postgresql">PostgreSQL</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="db-host" class="form-label">主机地址</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-hdd-network"></i></span>
+                            <input type="text" class="form-control" id="db-host" placeholder="请输入主机地址">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="db-port" class="form-label">端口</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-plug"></i></span>
+                            <input type="number" class="form-control" id="db-port" placeholder="请输入端口">
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-flex gap-2 w-100">
+                            <button type="submit" class="btn btn-primary flex-fill" id="db-config-submit-btn">
+                                <i class="bi bi-plus-circle me-1"></i>添加
+                            </button>
+                            <button type="button" class="btn btn-secondary flex-fill d-none" id="db-config-cancel-btn">
+                                <i class="bi bi-x-circle me-1"></i>取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-3">
+                        <label for="db-username" class="form-label">用户名</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="db-username" placeholder="请输入用户名">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="db-password" class="form-label">密码</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-key"></i></span>
+                            <input type="password" class="form-control" id="db-password" placeholder="请输入密码">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 数据库配置列表 -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pb-0">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-database me-2 text-primary"></i>数据库配置列表
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="db-config-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>配置名称</th>
+                            <th>数据库类型</th>
+                            <th>主机地址</th>
+                            <th>端口</th>
+                            <th>用户名</th>
+                            <th>创建时间</th>
+                            <th class="table-actions">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 动态加载数据库配置数据 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // AJAX配置
+    $.ajaxSetup({
+        xhrFields: {
+            withCredentials: true
+        },
+        crossDomain: true
+    });
+    
+    // 加载数据
+    loadDbConfigs();
+    
+    // 绑定数据库配置操作按钮事件
+    $(document).on('click', '.edit-db-config-btn', function() {
+        var configId = $(this).data('config-id');
+        editDbConfig(configId);
+    });
+    
+    $(document).on('click', '.delete-db-config-btn', function() {
+        var configId = $(this).data('config-id');
+        deleteDbConfig(configId);
+    });
+    
+    // 数据库配置表单提交
+    $('#db-config-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const configId = $('#db-config-id').val();
+        const isUpdate = configId !== '';
+        
+        const formData = {
+            name: $('#db-name').val(),
+            db_type: $('#db-type').val(),
+            host: $('#db-host').val(),
+            port: $('#db-port').val(),
+            username: $('#db-username').val(),
+            password: $('#db-password').val()
+        };
+        
+        const url = isUpdate ? `/api/db-configs/${configId}` : '/api/db-configs';
+        const method = isUpdate ? 'PUT' : 'POST';
+        const successMessage = isUpdate ? '数据库配置更新成功' : '数据库配置添加成功';
+        
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                showToast(successMessage, 'success');
+                loadDbConfigs();
+                resetDbConfigForm();
+            },
+            error: function(xhr) {
+                showToast((isUpdate ? '更新' : '保存') + '配置失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'), 'error');
+            }
+        });
+    });
+    
+    // 取消编辑数据库配置
+    $('#db-config-cancel-btn').on('click', function() {
+        resetDbConfigForm();
+    });
+});
+
+// 重置数据库配置表单
+function resetDbConfigForm() {
+    $('#db-config-form')[0].reset();
+    $('#db-config-id').val('');
+    $('#db-config-submit-btn').html('<i class="bi bi-plus-circle me-1"></i>添加');
+    $('#db-config-cancel-btn').addClass('d-none');
+}
+
+// 加载数据库配置
+function loadDbConfigs() {
+    $.get('/api/db-configs', function(configs) {
+        const tbody = $('#db-config-table tbody');
+        
+        // 清空现有的行
+        tbody.empty();
+        
+        configs.forEach(function(config) {
+            tbody.append(`
+                <tr>
+                    <td>${config.id}</td>
+                    <td>${config.name}</td>
+                    <td>${config.db_type}</td>
+                    <td>${config.host || 'N/A'}</td>
+                    <td>${config.port || 'N/A'}</td>
+                    <td>${config.username || 'N/A'}</td>
+                    <td>${formatDate(config.created_at)}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary edit-db-config-btn" data-config-id="${config.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger delete-db-config-btn" data-config-id="${config.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
+        });
+    }).fail(function() {
+        showToast('加载数据库配置失败', 'error');
+    });
+}
+
+// 编辑数据库配置
+function editDbConfig(configId) {
+    $.get(`/api/db-configs/${configId}`, function(config) {
+        // 填充表单数据
+        $('#db-config-id').val(config.id);
+        $('#db-name').val(config.name);
+        $('#db-type').val(config.db_type);
+        $('#db-host').val(config.host || '');
+        $('#db-port').val(config.port || '');
+        $('#db-username').val(config.username || '');
+        $('#db-password').val(config.password || '');
+        
+        // 更改按钮文本和显示取消按钮
+        $('#db-config-submit-btn').html('<i class="bi bi-check-circle me-1"></i>更新');
+        $('#db-config-cancel-btn').removeClass('d-none');
+        
+        // 滚动到表单位置
+        $('html, body').animate({
+            scrollTop: $('#db-config-form').offset().top - 100
+        }, 500);
+    }).fail(function() {
+        showToast('获取数据库配置详情失败', 'error');
+    });
+}
+
+// 删除数据库配置
+function deleteDbConfig(configId) {
+    showConfirm('确定要删除这个数据库配置吗？', function() {
+        $.ajax({
+            url: `/api/db-configs/${configId}`,
+            method: 'DELETE',
+            success: function(response) {
+                showToast(response.message, 'success');
+                loadDbConfigs();
+            },
+            error: function(xhr) {
+                console.error('删除数据库配置失败:', xhr);
+                showToast('删除数据库配置失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'), 'error');
+            }
+        });
+    });
+}
+
+// 格式化日期
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// 显示提示消息
+function showToast(message, type) {
+    // 创建toast元素
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    // 创建toast容器（如果不存在）
+    let toastContainer = $('.toast-container');
+    if (toastContainer.length === 0) {
+        toastContainer = $('<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
+        $('body').append(toastContainer);
+    }
+    
+    // 添加toast并显示
+    const $toast = $(toastHtml);
+    toastContainer.append($toast);
+    const toast = new bootstrap.Toast($toast[0]);
+    toast.show();
+    
+    // 自动移除
+    $toast.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+
+// 显示确认对话框
+function showConfirm(message, onConfirm) {
+    const modalHtml = `
+        <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">确认操作</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>${message}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-danger" id="confirmBtn">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 移除现有的确认模态框
+    $('#confirmModal').remove();
+    
+    // 添加新的模态框
+    $('body').append(modalHtml);
+    
+    // 绑定确认按钮事件
+    $('#confirmBtn').on('click', function() {
+        $('#confirmModal').modal('hide');
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+    });
+    
+    // 显示模态框
+    $('#confirmModal').modal('show');
+}
+</script>
+{% endblock %}

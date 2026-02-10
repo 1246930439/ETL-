@@ -1,0 +1,622 @@
+/* 自定义样式 */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --success-color: #4cc9f0;
+    --light-bg: #f8f9fa;
+    --dark-text: #212529;
+    --light-text: #6c757d;
+    --border-color: #dee2e6;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fb;
+    color: var(--dark-text);
+}
+
+/* 导航栏样式 */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,.1);
+    background-color: #ffffff !important;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1.5rem !important;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--light-text);
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    background-color: rgba(67, 97, 238, 0.1);
+}
+
+.nav-link.active {
+    color: var(--primary-color);
+    background-color: rgba(67, 97, 238, 0.15);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(67, 97, 238, 0.2);
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+}
+
+/* 卡片样式 */
+.card {
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--hover-shadow);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 1rem 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    color: var(--dark-text);
+    margin-bottom: 0;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
+
+/* 表单样式 */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text);
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: var(--border-color);
+    border-radius: 6px 0 0 6px;
+}
+
+/* 表格样式 */
+.table {
+    vertical-align: middle;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-actions {
+    width: 1%;
+    white-space: nowrap;
+}
+
+/* 徽章样式 */
+.badge {
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 0.5em 0.75em;
+}
+
+.badge.bg-light {
+    color: var(--dark-text);
+}
+
+/* 任务状态颜色 */
+.status-active {
+    background-color: #28a745;
+}
+
+.status-inactive {
+    background-color: #dc3545;
+}
+
+/* 日志状态颜色 */
+.log-success {
+    color: #28a745;
+}
+
+.log-failed {
+    color: #dc3545;
+}
+
+/* Token显示样式 */
+.token-display {
+    font-family: monospace;
+    font-size: 0.875em;
+}
+
+/* 复制按钮动画 */
+@keyframes fadeInOut {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.animate-copy {
+    animation: fadeInOut 0.5s ease-in-out;
+}
+
+/* 表格中的输入组 */
+#tokens-table .input-group {
+    flex-wrap: nowrap;
+}
+
+#tokens-table .input-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .navbar-nav {
+        flex-direction: column;
+    }
+    
+    .nav-link {
+        margin-bottom: 0.25rem;
+    }
+    
+    .btn-group {
+        flex-wrap: wrap;
+    }
+    
+    /* Token表格在移动端的优化 */
+    #tokens-table .input-group {
+        flex-wrap: wrap;
+    }
+    
+    #tokens-table .token-display {
+        max-width: 150px;
+        overflow-x: auto;
+    }
+}
+
+/* 动画效果 */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 表单布局优化 */
+.form-section {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #495057;
+}
+
+/* 操作按钮组 */
+.btn-group-actions .btn {
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* 模态框样式优化 */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 1rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 1rem 1.5rem;
+}
+
+/* 页脚样式 */
+.card-footer {
+    background-color: transparent;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+.h3 {
+    font-size: 1.5rem;
+}
+
+/* 预格式化文本 */
+pre {
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    overflow: auto;
+    max-height: 300px;
+}
+
+/* 登录页面特殊样式 */
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.rounded-circle {
+    border-radius: 50% !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+/* 表格内的小字体预格式化文本 */
+table pre.small {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 0;
+    background-color: rgba(0, 0, 0, 0.02);
+    border: 1px dashed #dee2e6;
+}
+
+/* 文本截断 */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 警告框样式 */
+.alert {
+    border-radius: 6px;
+}
+
+.alert-dismissible .btn-close {
+    padding: 1rem;
+}
+
+/* 按钮图标间距 */
+.btn i {
+    margin-right: 0;
+}
+
+/* 按钮组紧凑显示 */
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+/* 导航栏增强样式 */
+.navbar {
+    margin-bottom: 2rem !important;
+}
+
+/* 紧凑布局样式 */
+.compact-layout .card {
+    margin-bottom: 1rem;
+}
+
+.compact-layout .card-header {
+    padding: 0.5rem 1rem;
+}
+
+.compact-layout .card-body {
+    padding: 0.75rem;
+}
+
+.compact-layout .form-label {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.compact-layout .form-control,
+.compact-layout .form-select {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.compact-layout .input-group-text {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.compact-layout .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.compact-layout .table {
+    font-size: 0.875rem;
+}
+
+.compact-layout .table th {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+}
+
+.compact-layout .table td {
+    padding: 0.5rem;
+}
+
+.compact-layout .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* 全局字体大小调整 */
+body {
+    font-size: 0.9rem;
+}
+
+/* 卡片标题字体大小 */
+.card-title {
+    font-size: 1rem;
+}
+
+/* 表格行高调整 */
+.table {
+    --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+}
+
+.table td, .table th {
+    vertical-align: middle;
+    padding: 0.5rem;
+}
+
+/* 输入组间距 */
+.input-group {
+    margin-bottom: 0.25rem;
+}
+
+/* 行间距调整 */
+.row {
+    margin-bottom: 0.5rem;
+}
+
+.row:last-child {
+    margin-bottom: 0;
+}
+
+/* 移动设备上的导航栏样式调整 */
+@media (max-width: 768px) {
+    .navbar {
+        margin-bottom: 1rem !important;
+    }
+    
+    .nav-link.active::after {
+        display: none; /* 在移动设备上隐藏下划线 */
+    }
+    
+    .nav-link {
+        margin-bottom: 0.5rem;
+        border-radius: 6px;
+    }
+    
+    .nav-link.active {
+        box-shadow: 0 2px 4px rgba(67, 97, 238, 0.2);
+    }
+}
+
+/* 任务表单样式增强 */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+}
+
+.input-group-lg .input-group-text {
+    border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.input-group-lg .form-control {
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.input-group-lg .form-control.border-start-0 {
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.input-group-lg .form-select.border-start-0 {
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.input-group-lg .btn {
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.input-group-lg .form-control.border-start-0.border-end-0 {
+    border-radius: 0;
+}
+
+.form-section-title {
+    position: relative;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 2px;
+}
+
+.form-control-lg, .form-select-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+/* 表单字段悬停效果 */
+.input-group-lg .form-control:hover,
+.input-group-lg .form-select:hover {
+    border-color: #a0c3ff;
+}
+
+/* 表单字段聚焦效果增强 */
+.input-group-lg .form-control:focus,
+.input-group-lg .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+/* 表单按钮增强 */
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+}
+
+.btn-secondary.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* 表单卡片增强 */
+.card.border-0.shadow-sm {
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+    transition: all 0.3s ease;
+}
+
+.card.border-0.shadow-sm:hover {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px);
+}
+
+/* 表单分组标题样式 */
+.text-muted.fw-bold {
+    color: #6c757d !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+}
+
+/* 自定义下拉框箭头样式 */
+#per-page-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%234361ee' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* 自定义所有下拉框箭头样式 */
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%234361ee' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}

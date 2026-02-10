@@ -1,0 +1,1436 @@
+{% extends "base.html" %}
+
+{% block title %}预警配置 - 任务调度系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .alert-item {
+        border-left: 4px solid #0d6efd;
+        padding-left: 15px;
+        margin-bottom: 15px;
+    }
+    .alert-item.disabled {
+        border-left-color: #6c757d;
+        opacity: 0.7;
+    }
+    .badge {
+        font-size: 0.75em;
+    }
+    
+    /* 确保Cron配置对话框在SQL预警模态框之上 */
+    #sqlAlertCronModal {
+        z-index: 1060;
+    }
+    
+    /* 确保Cron配置对话框显示在正确的位置 */
+    #sqlAlertCronModal.show {
+        display: block !important;
+    }
+    
+    /* 确保Cron配置对话框的背景不透明 */
+    #sqlAlertCronModal .modal-content {
+        background-color: rgba(255, 255, 255, 0.98);
+    }
+    
+    /* 确保Cron表达式输入框可以正常编辑 */
+    #sqlAlertCronModal input {
+        pointer-events: auto !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        opacity: 1 !important;
+    }
+    
+    /* 确保Cron表达式输入框在焦点状态下可编辑 */
+    #sqlAlertCronModal input:focus {
+        pointer-events: auto !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        opacity: 1 !important;
+        outline: auto !important;
+    }
+    
+    /* 强制确保所有输入框可编辑 */
+    #sqlAlert-cron-minute, #sqlAlert-cron-hour, #sqlAlert-cron-day, #sqlAlert-cron-month, #sqlAlert-cron-week {
+        pointer-events: auto !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        opacity: 1 !important;
+        background-color: #fff !important;
+        color: #212529 !important;
+        readonly: false !important;
+        disabled: false !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 工具栏 -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        <div class="btn-toolbar mb-2 mb-md-0">
+        </div>
+    </div>
+
+    <!-- 任务状态预警 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-exclamation-triangle me-2"></i>任务状态预警</span>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#taskAlertModal">
+                <i class="bi bi-plus-circle me-1"></i>添加任务预警
+            </button>
+        </div>
+        <div class="card-body">
+            <div id="task-alerts-list">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SQL查询预警 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-database me-2"></i>SQL查询预警</span>
+            <div>
+                <button class="btn btn-outline-secondary btn-sm me-2" onclick="refreshSqlAlerts()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>刷新
+                </button>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sqlAlertModal">
+                    <i class="bi bi-plus-circle me-1"></i>添加SQL预警
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <!-- SQL预警表格 -->
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="sql-alerts-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 4%">#</th>
+                            <th style="width: 15%">预警名称</th>
+                            <th style="width: 12%">SQL脚本</th>
+                            <th style="width: 12%">预警条件</th>
+                            <th style="width: 12%">Cron表达式</th>
+                            <th style="width: 13%">最后执行时间</th>
+                            <th style="width: 13%">下次执行时间</th>
+                            <th style="width: 9%">收件人</th>
+                            <th style="width: 10%">状态</th>
+                            <th style="width: 10%">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sql-alerts-list">
+                        <tr>
+                            <td colspan="10" class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 空状态提示 -->
+            <div id="sql-alerts-empty" class="text-center py-4" style="display: none;">
+                <i class="bi bi-database text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">暂无SQL预警配置</p>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sqlAlertModal">
+                    <i class="bi bi-plus-circle me-1"></i>添加第一个SQL预警
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 任务预警模态框 -->
+<div class="modal fade" id="taskAlertModal" tabindex="-1" aria-labelledby="taskAlertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskAlertModalLabel">添加任务状态预警</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="taskAlertForm">
+                    <div class="mb-3">
+                        <label for="taskAlertName" class="form-label">预警名称</label>
+                        <input type="text" class="form-control" id="taskAlertName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskAlertCondition" class="form-label">预警条件</label>
+                        <select class="form-select" id="taskAlertCondition" required>
+                            <option value="">请选择条件</option>
+                            <option value="failed">任务失败</option>
+                            <option value="timeout">任务超时</option>
+                            <option value="success">任务成功</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskAlertEmails" class="form-label">收件人邮箱</label>
+                        <input type="text" class="form-control" id="taskAlertEmails" placeholder="多个邮箱用逗号分隔" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskAlertEnabled" class="form-label">状态</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="taskAlertEnabled" checked>
+                            <label class="form-check-label" for="taskAlertEnabled">
+                                启用预警
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveTaskAlert()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SQL预警模态框 -->
+<div class="modal fade" id="sqlAlertModal" tabindex="-1" aria-labelledby="sqlAlertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sqlAlertModalLabel">添加SQL查询预警</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sqlAlertForm">
+                    <div class="mb-3">
+                        <label for="sqlAlertName" class="form-label">预警名称</label>
+                        <input type="text" class="form-control" id="sqlAlertName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sqlAlertScriptId" class="form-label">SQL脚本</label>
+                        <select class="form-select" id="sqlAlertScriptId" required>
+                            <option value="">请选择SQL脚本</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sqlAlertCondition" class="form-label">预警条件</label>
+                        <select class="form-select" id="sqlAlertCondition" required>
+                            <option value="">请选择条件</option>
+                            <option value="rows_gt">行数大于</option>
+                            <option value="rows_lt">行数小于</option>
+                            <option value="rows_eq">行数等于</option>
+                            <option value="rows_neq">行数不等于</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sqlAlertThreshold" class="form-label">阈值</label>
+                        <input type="number" class="form-control" id="sqlAlertThreshold" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sqlAlertEmails" class="form-label">收件人邮箱</label>
+                        <input type="text" class="form-control" id="sqlAlertEmails" placeholder="多个邮箱用逗号分隔" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sqlAlertCronExpression" class="form-label">Cron表达式（可选）</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="sqlAlertCronExpression" placeholder="例如: 0 */5 * * * (每5分钟执行一次)">
+                            <button class="btn btn-outline-secondary" type="button" onclick="openSqlAlertCronModal()">
+                                <i class="bi bi-gear"></i> 配置
+                            </button>
+                        </div>
+                        <div class="form-text">留空则使用默认间隔（5分钟）检查一次</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sqlAlertEnabled" class="form-label">状态</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sqlAlertEnabled" checked>
+                            <label class="form-check-label" for="sqlAlertEnabled">
+                                启用预警
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveSqlAlert()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SQL预警检查进度和结果模态框 -->
+<div class="modal fade" id="sqlAlertCheckModal" tabindex="-1" aria-labelledby="sqlAlertCheckModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sqlAlertCheckModalLabel">SQL预警检查</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 进度条部分 -->
+                <div id="sqlAlertCheckProgress">
+                    <div class="mb-3 text-center">
+                        <h4 id="sqlCheckProgressPercentage" class="text-primary mb-2">0%</h4>
+                        <p class="text-muted mb-0">正在检查SQL预警，请稍候...</p>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div id="sqlCheckProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span id="sqlCheckProgressStatus">准备连接数据库...</span>
+                        <span id="sqlCheckProgressTime">已用时: 0秒</span>
+                    </div>
+                </div>
+                
+                <!-- 结果部分 -->
+                <div id="sqlAlertCheckResult" style="display: none;">
+                    <div id="sqlAlertCheckResultContent"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="sqlAlertCheckModalCloseBtn" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SQL预警Cron表达式配置对话框 -->
+<div class="modal fade" id="sqlAlertCronModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light text-dark">
+                <h6 class="modal-title">
+                    <i class="bi bi-gear me-2"></i>SQL预警 Cron表达式配置
+                </h6>
+                <button type="button" class="btn-close" onclick="closeSqlAlertCronModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="row">
+                    <div class="col-md-5">
+                        <h6 class="fw-bold mb-2">
+                            <i class="bi bi-lightning-charge me-2 text-secondary"></i>快速选择
+                        </h6>
+                        <div class="d-grid gap-1">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('0 * * * *')">
+                                <i class="bi bi-clock me-1"></i>每小时
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('0 0 * * *')">
+                                <i class="bi bi-calendar-day me-1"></i>每天
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('0 0 * * 0')">
+                                <i class="bi bi-calendar-week me-1"></i>每周
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('0 0 1 * *')">
+                                <i class="bi bi-calendar-month me-1"></i>每月
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('*/5 * * * *')">
+                                <i class="bi bi-arrow-repeat me-1"></i>每5分钟
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('*/10 * * * *')">
+                                <i class="bi bi-arrow-repeat me-1"></i>每10分钟
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('0 */2 * * *')">
+                                <i class="bi bi-arrow-repeat me-1"></i>每2小时
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setSqlAlertCronExpression('0 0 * * 1-5')">
+                                <i class="bi bi-calendar-week me-1"></i>工作日
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <h6 class="fw-bold mb-2">
+                            <i class="bi bi-sliders me-2 text-secondary"></i>自定义表达式
+                        </h6>
+                        <div id="sqlAlert-cron-form">
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">分钟 (0-59)</label>
+                                    <input type="text" class="form-control form-control-sm" id="sqlAlert-cron-minute" placeholder="*" autocomplete="off" style="pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important;" readonly="false" disabled="false">
+                                    <div class="form-text">例如: 0, 15, 30, 45 或 */5</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">小时 (0-23)</label>
+                                    <input type="text" class="form-control form-control-sm" id="sqlAlert-cron-hour" placeholder="*" autocomplete="off" style="pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important;" readonly="false" disabled="false">
+                                    <div class="form-text">例如: 9, 14, 18 或 */2</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">日 (1-31)</label>
+                                    <input type="text" class="form-control form-control-sm" id="sqlAlert-cron-day" placeholder="*" autocomplete="off" style="pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important;" readonly="false" disabled="false">
+                                    <div class="form-text">例如: 1, 15 或 1-15</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">月 (1-12)</label>
+                                    <input type="text" class="form-control form-control-sm" id="sqlAlert-cron-month" placeholder="*" autocomplete="off" style="pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important;" readonly="false" disabled="false">
+                                    <div class="form-text">例如: 1, 6, 12 或 1,4,7,10</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">周 (0-7, 0和7都表示周日)</label>
+                                    <input type="text" class="form-control form-control-sm" id="sqlAlert-cron-week" placeholder="*" autocomplete="off" style="pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; -moz-user-select: text !important; -ms-user-select: text !important;" readonly="false" disabled="false">
+                                    <div class="form-text">例如: 1 (周一) 或 1-5 (周一至周五)</div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-primary btn-sm" id="generateSqlAlertCronBtn">
+                                    <i class="bi bi-gear me-1"></i>生成表达式
+                                </button>
+                                <div class="mt-2">
+                                    <small class="text-muted">当前表达式: <code id="sqlAlert-current-cron">-</code></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeSqlAlertCronModal()">
+                    <i class="bi bi-x-circle me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="applySqlAlertCronExpression()">
+                    <i class="bi bi-check-circle me-1"></i>应用
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SQL预警日志模态框 -->
+<div class="modal fade" id="sqlAlertLogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light text-dark">
+                <h6 class="modal-title">
+                    <i class="bi bi-file-text me-2"></i>SQL预警执行日志
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <!-- 预警信息 -->
+                <div class="card mb-3 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-info-circle me-2 text-secondary"></i>预警信息
+                        </h6>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>预警名称：</strong>
+                                <span id="sql-log-alert-name" class="text-secondary">-</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>执行时间：</strong>
+                                <span id="sql-log-execution-time" class="text-secondary">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 执行状态 -->
+                <div class="card mb-3 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-flag me-2 text-secondary"></i>执行状态
+                        </h6>
+                    </div>
+                    <div class="card-body p-2">
+                        <div id="sql-log-status-container" class="text-center">
+                            <!-- 状态将在这里动态显示 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 日志内容 -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-journal-text me-2 text-secondary"></i>日志内容
+                        </h6>
+                    </div>
+                    <div class="card-body p-2">
+                        <pre id="sql-alert-log-content" class="bg-dark text-light p-2 rounded" style="max-height: 300px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px;"></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info btn-sm" id="view-detailed-log-btn" onclick="viewDetailedLog()">
+                    <i class="bi bi-info-circle me-1"></i>查看详细日志
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 配置AJAX以包含凭据
+$.ajaxSetup({
+    xhrFields: {
+        withCredentials: true
+    },
+    crossDomain: true
+});
+
+// 当前查看的预警ID
+let currentAlertId = null;
+
+// 页面加载时执行
+$(document).ready(function() {
+    loadAlerts();
+    loadTasks();
+    loadSqlScripts();
+    
+    // 添加SQL预警模态框关闭事件处理
+    $('#sqlAlertModal').on('hidden.bs.modal', function () {
+        // 重置表单
+        document.getElementById('sqlAlertForm').reset();
+        // 重置标题
+        document.getElementById('sqlAlertModalLabel').textContent = '添加SQL查询预警';
+        // 重置保存按钮
+        $('#sqlAlertModal .btn-primary').attr('onclick', 'saveSqlAlert()');
+    });
+});
+
+// 加载预警列表
+function loadAlerts() {
+    // 初始化SQL预警表格显示状态
+    $('#sql-alerts-table').show();
+    $('#sql-alerts-empty').hide();
+    
+    // 加载任务预警
+    $.get('/api/task-alerts', function(response) {
+        try {
+            let data = response.alerts || [];
+            let html = '';
+            if (data.length === 0) {
+                html = '<div class="text-center py-3 text-muted">暂无任务预警配置</div>';
+            } else {
+                data.forEach(alert => {
+                        html += `
+                            <div class="alert-item ${alert.enabled ? '' : 'disabled'}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">${alert.name}</h6>
+                                        <p class="mb-1">条件: ${getConditionText(alert.condition)}</p>
+                                        <p class="mb-0">收件人: ${alert.emails}</p>
+                                    </div>
+                                    <div>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" ${alert.enabled ? 'checked' : ''} onchange="toggleTaskAlert(${alert.id}, this.checked)">
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editTaskAlert(${alert.id})">编辑</button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTaskAlert(${alert.id})">删除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+            }
+            $('#task-alerts-list').html(html);
+        } catch (error) {
+            console.error('处理任务预警数据时出错:', error);
+            $('#task-alerts-list').html('<div class="text-center py-3 text-danger">处理任务预警数据时出错，请刷新页面重试</div>');
+        }
+    })
+    .fail(function(xhr, status, error) {
+        console.error('加载任务预警失败:', status, error);
+        $('#task-alerts-list').html('<div class="text-center py-3 text-danger">加载任务预警配置失败，请刷新页面重试</div>');
+    });
+
+    // 加载SQL预警
+    refreshSqlAlerts();
+}
+
+// 刷新SQL预警列表
+function refreshSqlAlerts() {
+    // 显示加载状态
+    $('#sql-alerts-list').html(`
+        <tr>
+            <td colspan="10" class="text-center py-3">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </td>
+        </tr>
+    `);
+    
+    // 重新加载SQL预警
+    $.get('/api/sql-alerts', function(response) {
+        try {
+            let data = response.alerts || [];
+            let html = '';
+            
+            // 显示或隐藏空状态提示
+            if (data.length === 0) {
+                $('#sql-alerts-table').hide();
+                $('#sql-alerts-empty').show();
+            } else {
+                $('#sql-alerts-table').show();
+                $('#sql-alerts-empty').hide();
+                
+                data.forEach((alert, index) => {
+                    // 格式化下次执行时间
+                    let nextCheckText = '';
+                    if (alert.cron_expression) {
+                        if (alert.next_check) {
+                            const nextCheck = new Date(alert.next_check);
+                            nextCheckText = `下次执行: ${nextCheck.toLocaleString('zh-CN')}`;
+                        } else {
+                            nextCheckText = 'Cron: ' + alert.cron_expression;
+                        }
+                    } else {
+                        nextCheckText = '默认间隔(5分钟)';
+                    }
+                    
+                    // 操作按钮
+                    const actionButtons = `
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary" onclick="editSqlAlert(${alert.id})" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-info" onclick="viewSqlAlertLog(${alert.id})" title="日志">
+                                <i class="bi bi-file-text"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-success" onclick="checkSqlAlert(${alert.id})" title="立即执行">
+                                <i class="bi bi-play-circle"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" onclick="deleteSqlAlert(${alert.id})" title="删除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <div class="fw-semibold">${alert.name}</div>
+                            </td>
+                            <td>${alert.script_name}</td>
+                            <td>${getSqlConditionText(alert.condition_type, alert.threshold)}</td>
+                            <td>
+                                <div class="font-monospace small">${alert.cron_expression || '默认间隔(5分钟)'}</div>
+                            </td>
+                            <td>
+                                ${alert.last_check ? `<div class="small">${formatDateTime(alert.last_check)}</div>` : '<div class="text-muted small">未执行</div>'}
+                            </td>
+                            <td>
+                                ${alert.next_check ? `<div class="small">${formatDateTime(alert.next_check)}</div>` : '<div class="text-muted small">未设置</div>'}
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 150px;" title="${alert.recipients}">
+                                    ${alert.recipients}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                        ${alert.enabled ? 'checked' : ''} 
+                                        onchange="toggleSqlAlert(${alert.id}, this.checked)">
+                                </div>
+                            </td>
+                            <td>${actionButtons}</td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#sql-alerts-list').html(html);
+        } catch (error) {
+            console.error('处理SQL预警数据时出错:', error);
+            $('#sql-alerts-list').html('<tr><td colspan="10" class="text-center py-3 text-danger">处理SQL预警数据时出错，请刷新页面重试</td></tr>');
+        }
+    })
+    .fail(function(xhr, status, error) {
+        console.error('加载SQL预警失败:', status, error);
+        $('#sql-alerts-list').html('<tr><td colspan="10" class="text-center py-3 text-danger">加载SQL预警配置失败，请刷新页面重试</td></tr>');
+    });
+}
+
+// 加载任务列表
+function loadTasks() {
+    $.get('/api/tasks', function(data) {
+        try {
+            // 处理API返回的数据格式（可能直接是数组或包装在对象中）
+            let tasks = Array.isArray(data) ? data : (data.tasks || []);
+            let html = '<option value="">请选择任务</option>';
+            tasks.forEach(task => {
+                html += `<option value="${task.id}">${task.name}</option>`;
+            });
+            $('#taskAlertTaskId').html(html);
+        } catch (error) {
+            console.error('处理任务列表数据时出错:', error);
+            $('#taskAlertTaskId').html('<option value="">处理任务列表数据时出错</option>');
+        }
+    })
+    .fail(function(xhr, status, error) {
+        console.error('加载任务列表失败:', status, error);
+        $('#taskAlertTaskId').html('<option value="">加载任务列表失败</option>');
+    });
+}
+
+// 加载SQL脚本列表
+function loadSqlScripts() {
+    $.get('/api/sql-scripts', function(response) {
+        try {
+            // 处理API返回的数据格式
+            let data = response.sql_scripts || [];
+            let html = '<option value="">请选择SQL脚本</option>';
+            data.forEach(script => {
+                html += `<option value="${script.id}">${script.name}</option>`;
+            });
+            $('#sqlAlertScriptId').html(html);
+        } catch (error) {
+            console.error('处理SQL脚本列表数据时出错:', error);
+            $('#sqlAlertScriptId').html('<option value="">处理SQL脚本列表数据时出错</option>');
+        }
+    })
+    .fail(function(xhr, status, error) {
+        console.error('加载SQL脚本列表失败:', status, error);
+        $('#sqlAlertScriptId').html('<option value="">加载SQL脚本列表失败</option>');
+    });
+}
+
+// 加载SQL脚本内容
+
+
+// 获取条件文本
+function getConditionText(condition) {
+    const conditions = {
+        'failed': '任务失败',
+        'timeout': '任务超时',
+        'success': '任务成功'
+    };
+    return conditions[condition] || condition;
+}
+
+// 格式化日期时间
+function formatDateTime(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleString('zh-CN', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+}
+
+// 获取SQL条件文本
+function getSqlConditionText(conditionType, threshold) {
+    switch (conditionType) {
+        case 'rows_gt':
+        case 'greater_than':
+            return `行数 > ${threshold}`;
+        case 'rows_eq':
+        case 'equals':
+            return `行数 = ${threshold}`;
+        case 'rows_lt':
+        case 'less_than':
+            return `行数 < ${threshold}`;
+        case 'not_empty':
+            return '结果不为空';
+        case 'row_count':
+            return `行数 ${threshold > 0 ? '>' : '='} ${Math.abs(threshold)}`;
+        default:
+            return '未知条件';
+    }
+}
+
+// 保存任务预警
+function saveTaskAlert() {
+    const name = $('#taskAlertName').val();
+    const condition = $('#taskAlertCondition').val();
+    const emails = $('#taskAlertEmails').val();
+    const enabled = $('#taskAlertEnabled').is(':checked');
+
+    if (!name || !condition || !emails) {
+        alert('请填写完整信息');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/task-alerts',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            task_id: null,  // 全局预警，不关联特定任务
+            condition: condition,
+            emails: emails,
+            enabled: enabled
+        }),
+        success: function() {
+            $('#taskAlertModal').modal('hide');
+            document.getElementById('taskAlertForm').reset();
+            loadAlerts();
+        },
+        error: function(xhr, status, error) {
+            console.error('保存任务预警失败:', status, error);
+            alert('保存失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+        }
+    });
+}
+
+// 保存SQL预警
+function saveSqlAlert() {
+    const name = $('#sqlAlertName').val();
+    const script_id = $('#sqlAlertScriptId').val();
+    const condition = $('#sqlAlertCondition').val();
+    const threshold = $('#sqlAlertThreshold').val();
+    const emails = $('#sqlAlertEmails').val();
+    const cron_expression = $('#sqlAlertCronExpression').val();
+    const enabled = $('#sqlAlertEnabled').is(':checked');
+
+    if (!name || !script_id || !condition || !threshold || !emails) {
+        alert('请填写完整信息');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/sql-alerts',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            script_id: parseInt(script_id),
+            condition: condition,
+            threshold: parseInt(threshold),
+            emails: emails,
+            cron_expression: cron_expression,
+            enabled: enabled
+        }),
+        success: function() {
+            $('#sqlAlertModal').modal('hide');
+            document.getElementById('sqlAlertForm').reset();
+            refreshSqlAlerts(); // 使用专门的刷新函数
+        },
+        error: function(xhr, status, error) {
+            console.error('保存SQL预警失败:', status, error);
+            alert('保存失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+        }
+    });
+}
+
+// 切换任务预警状态
+function toggleTaskAlert(id, enabled) {
+    $.ajax({
+        url: `/api/task-alerts/${id}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ enabled: enabled }),
+        success: function(response) {
+            // 处理成功响应，包括"状态未改变"的情况
+            if (response && response.message) {
+                // 如果是状态未改变的情况，显示提示信息但仍然刷新页面以保持UI状态一致
+                if (response.message === '状态未改变') {
+                    console.log('任务预警状态未改变');
+                }
+            }
+            // 无论状态是否改变，都刷新页面以确保UI状态与数据库状态一致
+            refreshSqlAlerts(); // 使用专门的刷新函数
+        },
+        error: function(xhr, status, error) {
+            console.error('切换任务预警状态失败:', status, error);
+            alert('操作失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+        }
+    });
+}
+
+// 切换SQL预警状态
+function toggleSqlAlert(id, enabled) {
+    $.ajax({
+        url: `/api/sql-alerts/${id}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ enabled: enabled }),
+        success: function(response) {
+            // 处理成功响应
+            if (response && response.message) {
+                console.log('SQL预警操作结果:', response.message);
+            }
+            // 无论状态是否改变，都刷新页面以确保UI状态与数据库状态一致
+            refreshSqlAlerts();
+        },
+        error: function(xhr, status, error) {
+            console.error('切换SQL预警状态失败:', status, error);
+            alert('操作失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+        }
+    });
+}
+
+// 编辑任务预警
+function editTaskAlert(id) {
+    $.get(`/api/task-alerts/${id}`, function(alert) {
+        try {
+            $('#taskAlertName').val(alert.name);
+            $('#taskAlertCondition').val(alert.condition);
+            $('#taskAlertEmails').val(alert.emails);
+            $('#taskAlertEnabled').prop('checked', alert.enabled);
+            
+            $('#taskAlertModal').modal('show');
+            
+            // 修改保存按钮为更新
+            $('#taskAlertModal .btn-primary').attr('onclick', `updateTaskAlert(${id})`);
+        } catch (error) {
+            console.error('处理任务预警数据时出错:', error);
+            alert('处理任务预警数据时出错，请刷新页面重试');
+        }
+    })
+    .fail(function(xhr, status, error) {
+        console.error('加载任务预警配置失败:', status, error);
+        alert('加载任务预警配置失败，请刷新页面重试');
+    });
+}
+
+// 编辑SQL预警
+function editSqlAlert(id) {
+    $.get(`/api/sql-alerts/${id}`, function(alert) {
+        try {
+            $('#sqlAlertName').val(alert.name);
+            $('#sqlAlertScriptId').val(alert.sql_script_id);
+            $('#sqlAlertCondition').val(alert.condition_type);
+            $('#sqlAlertThreshold').val(alert.threshold);
+            $('#sqlAlertEmails').val(alert.recipients);
+            $('#sqlAlertEnabled').prop('checked', alert.enabled);
+            $('#sqlAlertCronExpression').val(alert.cron_expression || '');
+            
+            // 设置标题为编辑模式
+            document.getElementById('sqlAlertModalLabel').textContent = '编辑SQL查询预警';
+            
+            $('#sqlAlertModal').modal('show');
+            
+            // 修改保存按钮为更新
+            $('#sqlAlertModal .btn-primary').attr('onclick', `updateSqlAlert(${id})`);
+        } catch (error) {
+            console.error('处理SQL预警数据时出错:', error);
+            alert('处理SQL预警数据时出错，请刷新页面重试');
+        }
+    })
+    .fail(function(xhr, status, error) {
+        console.error('加载SQL预警配置失败:', status, error);
+        alert('加载SQL预警配置失败，请刷新页面重试');
+    });
+}
+
+// 更新任务预警
+function updateTaskAlert(id) {
+    const name = $('#taskAlertName').val();
+    const condition = $('#taskAlertCondition').val();
+    const emails = $('#taskAlertEmails').val();
+    const enabled = $('#taskAlertEnabled').is(':checked');
+
+    if (!name || !condition || !emails) {
+        alert('请填写完整信息');
+        return;
+    }
+
+    $.ajax({
+        url: `/api/task-alerts/${id}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            task_id: null,  // 全局预警，不关联特定任务
+            condition: condition,
+            emails: emails,
+            enabled: enabled
+        }),
+        success: function() {
+            $('#taskAlertModal').modal('hide');
+            document.getElementById('taskAlertForm').reset();
+            // 恢复保存按钮
+            $('#taskAlertModal .btn-primary').attr('onclick', 'saveTaskAlert()');
+            loadAlerts();
+        },
+        error: function(xhr, status, error) {
+            console.error('更新任务预警失败:', status, error);
+            alert('更新失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+        }
+    });
+}
+
+// 更新SQL预警
+function updateSqlAlert(id) {
+    const name = $('#sqlAlertName').val();
+    const script_id = $('#sqlAlertScriptId').val();
+    const condition = $('#sqlAlertCondition').val();
+    const threshold = $('#sqlAlertThreshold').val();
+    const emails = $('#sqlAlertEmails').val();
+    const cron_expression = $('#sqlAlertCronExpression').val();
+    const enabled = $('#sqlAlertEnabled').is(':checked');
+
+    if (!name || !script_id || !condition || !threshold || !emails) {
+        alert('请填写完整信息');
+        return;
+    }
+
+    $.ajax({
+        url: `/api/sql-alerts/${id}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            script_id: parseInt(script_id),
+            condition: condition,
+            threshold: parseInt(threshold),
+            emails: emails,
+            cron_expression: cron_expression,
+            enabled: enabled
+        }),
+        success: function() {
+            $('#sqlAlertModal').modal('hide');
+            document.getElementById('sqlAlertForm').reset();
+            // 恢复保存按钮
+            $('#sqlAlertModal .btn-primary').attr('onclick', 'saveSqlAlert()');
+            refreshSqlAlerts(); // 使用专门的刷新函数
+        },
+        error: function(xhr, status, error) {
+            console.error('更新SQL预警失败:', status, error);
+            alert('更新失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+        }
+    });
+}
+
+// 删除任务预警
+function deleteTaskAlert(id) {
+    if (confirm('确定要删除此预警吗？')) {
+        $.ajax({
+            url: `/api/task-alerts/${id}`,
+            type: 'DELETE',
+            success: function() {
+                loadAlerts(); // 使用通用的加载函数
+            },
+            error: function(xhr, status, error) {
+                console.error('删除任务预警失败:', status, error);
+                alert('删除失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+            }
+        });
+    }
+}
+
+// 删除SQL预警
+function deleteSqlAlert(id) {
+    if (confirm('确定要删除此预警吗？')) {
+        $.ajax({
+            url: `/api/sql-alerts/${id}`,
+            type: 'DELETE',
+            success: function() {
+                refreshSqlAlerts(); // 使用专门的刷新函数
+            },
+            error: function(xhr, status, error) {
+                console.error('删除SQL预警失败:', status, error);
+                alert('删除失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'));
+            }
+        });
+    }
+}
+
+// 查看SQL预警日志
+function viewSqlAlertLog(alertId) {
+    // 存储当前预警ID
+    currentAlertId = alertId;
+    
+    $.ajax({
+        url: `/api/sql-alerts/${alertId}/latest-log`,
+        method: 'GET',
+        success: function(response) {
+            // 检查是否有日志数据（有status字段表示有实际日志）
+            if (response.status !== undefined) {
+                // 设置预警名称
+                $('#sql-log-alert-name').text(response.alert_name || '未知预警');
+                
+                // 设置执行时间
+                const executionTime = response.execution_time ? 
+                    new Date(response.execution_time).toLocaleString('zh-CN') : 
+                    '未知时间';
+                $('#sql-log-execution-time').text(executionTime);
+                
+                // 设置执行状态（根据状态显示不同的UI）
+                const statusContainer = $('#sql-log-status-container');
+                let statusHtml = '';
+                
+                // 根据不同状态显示不同的UI
+                if (response.status === 'failed') {
+                    statusHtml = `
+                        <div class="alert alert-danger d-flex align-items-center justify-content-center" role="alert">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            <span class="fw-bold">执行失败</span>
+                        </div>
+                    `;
+                } else if (response.status === 'triggered_email_failed') {
+                    statusHtml = `
+                        <div class="alert alert-warning d-flex align-items-center justify-content-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span class="fw-bold">预警触发但邮件发送失败</span>
+                        </div>
+                    `;
+                } else {
+                    statusHtml = `
+                        <div class="alert alert-success d-flex align-items-center justify-content-center" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span class="fw-bold">执行成功</span>
+                        </div>
+                    `;
+                }
+                
+                statusContainer.html(statusHtml);
+                
+                // 设置日志内容
+                $('#sql-alert-log-content').text(response.message || '无详细日志信息');
+            } else {
+                // 没有日志数据，显示提示信息
+                $('#sql-log-alert-name').text(response.alert_name || '未知预警');
+                $('#sql-log-execution-time').text('-');
+                
+                const statusContainer = $('#sql-log-status-container');
+                statusContainer.html(`
+                    <div class="alert alert-warning d-flex align-items-center justify-content-center" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span class="fw-bold">暂无执行记录</span>
+                    </div>
+                `);
+                
+                $('#sql-alert-log-content').text(response.message || '该预警暂无执行日志');
+            }
+            
+            $('#sqlAlertLogModal').modal('show');
+        },
+        error: function(xhr) {
+            alert('获取SQL预警日志失败: ' + (xhr.responseJSON ? xhr.responseJSON.message : '未知错误'));
+        }
+    });
+}
+
+// 查看详细日志
+function viewDetailedLog() {
+    if (!currentAlertId) {
+        alert('无法获取预警ID');
+        return;
+    }
+    
+    // 禁用按钮，防止重复点击
+    $('#view-detailed-log-btn').prop('disabled', true).html('<i class="bi bi-hourglass-split me-1"></i>加载中...');
+    
+    $.ajax({
+        url: `/api/sql-alerts/${currentAlertId}/latest-log-details`,
+        method: 'GET',
+        success: function(response) {
+            // 恢复按钮状态
+            $('#view-detailed-log-btn').prop('disabled', false).html('<i class="bi bi-info-circle me-1"></i>查看详细日志');
+            
+            // 检查是否有详细日志
+            if (response.details) {
+                // 创建一个新的模态框来显示详细日志
+                if ($('#detailedLogModal').length === 0) {
+                    // 如果模态框不存在，创建它
+                    $('body').append(`
+                        <div class="modal fade" id="detailedLogModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h6 class="modal-title">
+                                            <i class="bi bi-info-circle me-2"></i>SQL预警详细执行日志
+                                        </h6>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body p-3">
+                                        <pre id="detailed-log-content" class="bg-dark text-light p-3 rounded" style="max-height: 500px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap;"></pre>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                            <i class="bi bi-x-circle me-1"></i>关闭
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+                
+                // 设置详细日志内容
+                $('#detailed-log-content').text(response.details);
+                
+                // 显示详细日志模态框
+                const detailedLogModal = new bootstrap.Modal(document.getElementById('detailedLogModal'));
+                detailedLogModal.show();
+            } else {
+                alert('没有详细日志信息');
+            }
+        },
+        error: function(xhr) {
+            // 恢复按钮状态
+            $('#view-detailed-log-btn').prop('disabled', false).html('<i class="bi bi-info-circle me-1"></i>查看详细日志');
+            alert('获取详细日志失败: ' + (xhr.responseJSON ? xhr.responseJSON.message : '未知错误'));
+        }
+    });
+}
+
+// 检查SQL预警
+function checkSqlAlert(alertId) {
+    // 显示模态框和进度条
+    const modal = new bootstrap.Modal(document.getElementById('sqlAlertCheckModal'));
+    modal.show();
+    
+    // 重置模态框状态
+    document.getElementById('sqlAlertCheckProgress').style.display = 'block';
+    document.getElementById('sqlAlertCheckResult').style.display = 'none';
+    
+    // 初始化进度条
+    let progress = 0;
+    const progressBar = document.getElementById('sqlCheckProgressBar');
+    const progressPercentage = document.getElementById('sqlCheckProgressPercentage');
+    const progressStatus = document.getElementById('sqlCheckProgressStatus');
+    const progressTime = document.getElementById('sqlCheckProgressTime');
+    
+    // 记录开始时间
+    const startTime = Date.now();
+    
+    // 更新进度和时间
+    const progressInterval = setInterval(() => {
+        // 更新时间显示
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        progressTime.textContent = `已用时: ${elapsed}秒`;
+        
+        // 模拟进度增长（根据不同阶段）
+        if (progress < 20) {
+            progress += 2;
+            progressStatus.textContent = '准备连接数据库...';
+        } else if (progress < 40) {
+            progress += 1;
+            progressStatus.textContent = '验证数据库配置...';
+        } else if (progress < 60) {
+            progress += 0.8;
+            progressStatus.textContent = '执行SQL查询...';
+        } else if (progress < 80) {
+            progress += 0.5;
+            progressStatus.textContent = '分析查询结果...';
+        } else if (progress < 95) {
+            progress += 0.2;
+            progressStatus.textContent = '生成Excel附件...';
+        } else {
+            // 保持在95%，等待实际完成
+            progress = Math.min(progress, 95);
+            progressStatus.textContent = '即将完成...';
+        }
+        
+        // 更新进度条和百分比
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress);
+        progressPercentage.textContent = `${Math.floor(progress)}%`;
+    }, 100);
+    
+    // AJAX请求执行SQL检查
+    fetch(`/api/sql-alerts/${alertId}/check`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // 清除进度更新定时器
+        clearInterval(progressInterval);
+        
+        // 完成进度条
+        progressBar.style.width = '100%';
+        progressBar.setAttribute('aria-valuenow', 100);
+        progressPercentage.textContent = '100%';
+        progressStatus.textContent = '检查完成';
+        
+        // 显示结果
+        setTimeout(() => {
+            document.getElementById('sqlAlertCheckProgress').style.display = 'none';
+            document.getElementById('sqlAlertCheckResult').style.display = 'block';
+            
+            let resultHtml = '';
+            if (data.success) {
+                resultHtml = `
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading"><i class="bi bi-check-circle me-2"></i>SQL预警检查成功</h5>
+                        <hr>
+                        <p class="mb-2"><strong>查询结果行数:</strong> ${data.result_count} 行</p>
+                        <p class="mb-2"><strong>预警条件:</strong> ${data.condition_text}</p>
+                        <p class="mb-2"><strong>是否触发预警:</strong> ${data.triggered ? '<span class="badge bg-warning">是</span>' : '<span class="badge bg-success">否</span>'}</p>
+                        ${data.triggered ? `<p class="mb-0"><strong>预警邮件:</strong> ${data.email_sent ? '已发送' : '发送失败'}</p>` : ''}
+                    </div>
+                `;
+            } else {
+                resultHtml = `
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>SQL预警检查失败</h5>
+                        <hr>
+                        <p class="mb-0"><strong>错误信息:</strong> ${data.error}</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('sqlAlertCheckResultContent').innerHTML = resultHtml;
+            
+            // 刷新SQL预警列表以更新状态
+            refreshSqlAlerts();
+        }, 500);
+    })
+    .catch(error => {
+        // 清除进度更新定时器
+        clearInterval(progressInterval);
+        
+        // 显示错误结果
+        document.getElementById('sqlAlertCheckProgress').style.display = 'none';
+        document.getElementById('sqlAlertCheckResult').style.display = 'block';
+        
+        const resultHtml = `
+            <div class="alert alert-danger">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>请求失败</h5>
+                <hr>
+                <p class="mb-0"><strong>错误信息:</strong> ${error.message}</p>
+            </div>
+        `;
+        
+        document.getElementById('sqlAlertCheckResultContent').innerHTML = resultHtml;
+    });
+}
+
+// SQL预警Cron表达式配置相关函数
+// 设置SQL预警Cron表达式
+function setSqlAlertCronExpression(expression) {
+    $('#sqlAlert-cron-minute').val(expression.split(' ')[0]);
+    $('#sqlAlert-cron-hour').val(expression.split(' ')[1]);
+    $('#sqlAlert-cron-day').val(expression.split(' ')[2]);
+    $('#sqlAlert-cron-month').val(expression.split(' ')[3]);
+    $('#sqlAlert-cron-week').val(expression.split(' ')[4]);
+    updateSqlAlertCurrentCron();
+}
+
+// 生成SQL预警Cron表达式
+function generateSqlAlertCronExpression() {
+    console.log('生成SQL预警Cron表达式被调用');
+    const minute = $('#sqlAlert-cron-minute').val() || '*';
+    const hour = $('#sqlAlert-cron-hour').val() || '*';
+    const day = $('#sqlAlert-cron-day').val() || '*';
+    const month = $('#sqlAlert-cron-month').val() || '*';
+    const week = $('#sqlAlert-cron-week').val() || '*';
+    
+    const cronExpression = `${minute} ${hour} ${day} ${month} ${week}`;
+    console.log('生成的Cron表达式:', cronExpression);
+    $('#sqlAlert-current-cron').text(cronExpression);
+}
+
+// 更新当前显示的Cron表达式
+function updateSqlAlertCurrentCron() {
+    const minute = $('#sqlAlert-cron-minute').val() || '*';
+    const hour = $('#sqlAlert-cron-hour').val() || '*';
+    const day = $('#sqlAlert-cron-day').val() || '*';
+    const month = $('#sqlAlert-cron-month').val() || '*';
+    const week = $('#sqlAlert-cron-week').val() || '*';
+    
+    const cronExpression = `${minute} ${hour} ${day} ${month} ${week}`;
+    $('#sqlAlert-current-cron').text(cronExpression);
+}
+
+// 关闭SQL预警Cron表达式配置对话框
+function closeSqlAlertCronModal() {
+    // 使用Bootstrap Modal API关闭模态框
+    const modal = bootstrap.Modal.getInstance(document.getElementById('sqlAlertCronModal'));
+    if (modal) {
+        modal.hide();
+    }
+}
+
+// 打开SQL预警Cron表达式配置对话框
+function openSqlAlertCronModal() {
+    // 获取当前的Cron表达式
+    const currentCron = $('#sqlAlertCronExpression').val() || '* * * * *';
+    
+    // 解析当前Cron表达式并填充到表单中
+    const parts = currentCron.split(' ');
+    if (parts.length === 5) {
+        $('#sqlAlert-cron-minute').val(parts[0] || '*');
+        $('#sqlAlert-cron-hour').val(parts[1] || '*');
+        $('#sqlAlert-cron-day').val(parts[2] || '*');
+        $('#sqlAlert-cron-month').val(parts[3] || '*');
+        $('#sqlAlert-cron-week').val(parts[4] || '*');
+    }
+    
+    // 显示当前Cron表达式
+    $('#sqlAlert-current-cron').text(currentCron);
+    
+    // 使用Bootstrap Modal API显示模态框
+    const modal = new bootstrap.Modal(document.getElementById('sqlAlertCronModal'), {
+        backdrop: false,
+        keyboard: true
+    });
+    modal.show();
+    
+    // 确保输入框可编辑
+    setTimeout(function() {
+        const inputs = ['sqlAlert-cron-minute', 'sqlAlert-cron-hour', 'sqlAlert-cron-day', 'sqlAlert-cron-month', 'sqlAlert-cron-week'];
+        inputs.forEach(function(id) {
+            const input = document.getElementById(id);
+            if (input) {
+                input.readOnly = false;
+                input.disabled = false;
+                input.focus();
+                input.blur();
+            }
+        });
+        // 设置第一个输入框获取焦点
+        document.getElementById('sqlAlert-cron-minute').focus();
+    }, 500);
+}
+
+// 应用SQL预警Cron表达式
+function applySqlAlertCronExpression() {
+    const minute = $('#sqlAlert-cron-minute').val() || '*';
+    const hour = $('#sqlAlert-cron-hour').val() || '*';
+    const day = $('#sqlAlert-cron-day').val() || '*';
+    const month = $('#sqlAlert-cron-month').val() || '*';
+    const week = $('#sqlAlert-cron-week').val() || '*';
+    
+    const cronExpression = `${minute} ${hour} ${day} ${month} ${week}`;
+    $('#sqlAlertCronExpression').val(cronExpression);
+    
+    // 只关闭Cron配置对话框，不关闭SQL预警模态框
+    closeSqlAlertCronModal();
+}
+
+// 监听Cron表达式输入框变化
+$(document).ready(function() {
+    // SQL预警Cron表达式输入框变化监听 - 使用事件委托确保动态加载的元素也能响应
+    $(document).on('input', '#sqlAlert-cron-minute, #sqlAlert-cron-hour, #sqlAlert-cron-day, #sqlAlert-cron-month, #sqlAlert-cron-week', function() {
+        updateSqlAlertCurrentCron();
+    });
+    
+    // 使用事件委托确保生成表达式按钮的点击事件能够正确触发
+    $(document).on('click', '#generateSqlAlertCronBtn', function(e) {
+        e.preventDefault();
+        generateSqlAlertCronExpression();
+    });
+    
+    // 监听SQL预警模态框打开事件，重置表单
+    $('#sqlAlertModal').on('show.bs.modal', function(e) {
+        // 检查是否是添加操作（通过检查触发按钮的onclick属性）
+        const triggerButton = e.relatedTarget;
+        if (triggerButton && !triggerButton.getAttribute('onclick')) {
+            // 这是添加操作，重置表单
+            document.getElementById('sqlAlertForm').reset();
+            // 重置标题
+            document.getElementById('sqlAlertModalLabel').textContent = '添加SQL查询预警';
+            // 重置保存按钮
+            $('#sqlAlertModal .btn-primary').attr('onclick', 'saveSqlAlert()');
+        }
+    });
+});
+
+</script>
+{% endblock %}

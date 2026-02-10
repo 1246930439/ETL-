@@ -1,0 +1,811 @@
+{% extends "base.html" %}
+
+{% block title %}预警日志 - 任务调度系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        font-weight: 600;
+    }
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .badge {
+        font-size: 0.75em;
+    }
+    .status-sent {
+        color: #198754;
+    }
+    .status-failed {
+        color: #dc3545;
+    }
+    .pagination {
+        margin-bottom: 0;
+    }
+    .log-detail {
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-funnel me-2"></i>筛选条件
+                    </div>
+                    <div class="card-body">
+                        <form id="filter-form">
+                            <div class="row g-3">
+                                <div class="col-md-2">
+                                    <label for="task-id-filter" class="form-label">任务ID</label>
+                                    <input type="number" class="form-control" id="task-id-filter" placeholder="输入任务ID">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="task-name-filter" class="form-label">任务名称</label>
+                                    <input type="text" class="form-control" id="task-name-filter" placeholder="输入任务名称">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="alert-type-filter" class="form-label">预警类型</label>
+                                    <select class="form-select" id="alert-type-filter">
+                                        <option value="">全部</option>
+                                        <option value="success">成功</option>
+                                        <option value="failed">失败</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="status-filter" class="form-label">发送状态</label>
+                                    <select class="form-select" id="status-filter">
+                                        <option value="">全部</option>
+                                        <option value="sent">已发送</option>
+                                        <option value="failed">发送失败</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-primary me-2" onclick="applyFilters()">
+                                        <i class="bi bi-search me-1"></i>查询
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">
+                                        <i class="bi bi-x-circle me-1"></i>重置
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 预警日志列表 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-file-text me-2"></i>预警日志列表</span>
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">每页显示:</span>
+                            <select class="form-select form-select-sm" id="per-page-select" style="width: auto;" onchange="changePerPage()">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>任务ID</th>
+                                        <th>任务名称</th>
+                                        <th>预警类型</th>
+                                        <th>邮件配置</th>
+                                        <th>收件人</th>
+                                        <th>状态</th>
+                                        <th>发送时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logs-table-body">
+                                    <tr>
+                                        <td colspan="9" class="text-center py-3">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">加载中...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页 -->
+                        <nav aria-label="预警日志分页">
+                            <ul class="pagination justify-content-center" id="pagination">
+                                <!-- 分页按钮将通过JavaScript动态生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+    </div>
+
+    <!-- 日志详情模态框 -->
+    <div class="modal fade" id="logDetailModal" tabindex="-1" aria-labelledby="logDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logDetailModalLabel">预警日志详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="log-detail-content">
+                        <!-- 日志详情将通过JavaScript动态填充 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="alertToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong class="me-auto">系统提示</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 立即配置fetch以包含凭据，确保在所有API调用之前设置
+    (function() {
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            if (args[1] && typeof args[1] === 'object') {
+                args[1].credentials = 'include';
+            } else {
+                args[1] = { credentials: 'include' };
+            }
+            return originalFetch.apply(this, args);
+        };
+    })();
+
+    // 全局变量
+    let currentPage = 1;
+    let perPage = 20;
+    let totalPages = 0;
+    let currentFilters = {
+        task_id: '',
+        task_name: '',
+        alert_type: '',
+        status: ''
+    };
+
+    // 等待DOM完全加载后再调用加载函数
+    document.addEventListener('DOMContentLoaded', function() {
+        loadNotificationLogs();
+    });
+
+    // 加载预警日志
+    function loadNotificationLogs(page = 1) {
+        currentPage = page;
+        
+        // 构建查询参数
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('per_page', perPage);
+        
+        if (currentFilters.task_id) {
+            params.append('task_id', currentFilters.task_id);
+        }
+        if (currentFilters.task_name) {
+            params.append('task_name', currentFilters.task_name);
+        }
+        if (currentFilters.alert_type) {
+            params.append('alert_type', currentFilters.alert_type);
+        }
+        if (currentFilters.status) {
+            params.append('status', currentFilters.status);
+        }
+        
+        // 显示加载状态
+        document.getElementById('logs-table-body').innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        fetch(`/api/notification-logs?${params.toString()}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('API响应状态:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('API响应数据:', data);
+            console.log('data.logs存在:', data.logs !== undefined);
+            console.log('data.logs类型:', typeof data.logs);
+            console.log('data.logs长度:', data.logs ? data.logs.length : 'undefined');
+            
+            if (data.logs && Array.isArray(data.logs)) {
+                renderLogsTable(data.logs);
+                renderPagination(data.pagination);
+            } else {
+                console.error('API返回的数据格式不正确，缺少logs数组');
+                showToast('加载预警日志失败', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('加载预警日志失败:', error);
+            showToast('加载预警日志失败', 'danger');
+            document.getElementById('logs-table-body').innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-3 text-danger">
+                        加载失败，请重试
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // 渲染日志表格
+    function renderLogsTable(logs) {
+        const tbody = document.getElementById('logs-table-body');
+        
+        if (logs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-2">没有找到符合条件的预警日志</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        
+        logs.forEach(log => {
+            const row = document.createElement('tr');
+            
+            const alertTypeText = log.alert_type === 'success' ? '成功' : '失败';
+            const alertTypeBadge = log.alert_type === 'success' ? 'bg-success' : 'bg-danger';
+            const statusIcon = log.status === 'sent' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+            const statusClass = log.status === 'sent' ? 'status-sent' : 'status-failed';
+            const statusText = log.status === 'sent' ? '已发送' : '发送失败';
+            
+            row.innerHTML = `
+                <td>${log.id}</td>
+                <td>${log.task_id}</td>
+                <td>${log.task_name}</td>
+                <td><span class="badge ${alertTypeBadge}">${alertTypeText}</span></td>
+                <td>${log.config_name || '-'}</td>
+                <td class="log-detail" title="${log.recipients || '-'}">${log.recipients || '-'}</td>
+                <td class="${statusClass}">
+                    <i class="bi ${statusIcon} me-1"></i>${statusText}
+                </td>
+                <td>${formatDateTime(log.sent_time)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showLogDetail(${log.id})">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+
+    // 渲染分页
+    function renderPagination(pagination) {
+        const paginationElement = document.getElementById('pagination');
+        totalPages = pagination.pages;
+        
+        if (totalPages <= 1) {
+            paginationElement.innerHTML = '';
+            return;
+        }
+        
+        let paginationHTML = '';
+        
+        // 上一页
+        paginationHTML += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadNotificationLogs(${currentPage - 1}); return false;">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        `;
+        
+        // 页码
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        if (startPage > 1) {
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="loadNotificationLogs(1); return false;">1</a>
+                </li>
+            `;
+            if (startPage > 2) {
+                paginationHTML += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="loadNotificationLogs(${i}); return false;">${i}</a>
+                </li>
+            `;
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="loadNotificationLogs(${totalPages}); return false;">${totalPages}</a>
+                </li>
+            `;
+        }
+        
+        // 下一页
+        paginationHTML += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadNotificationLogs(${currentPage + 1}); return false;">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        `;
+        
+        paginationElement.innerHTML = paginationHTML;
+    }
+
+    // 显示日志详情
+    function showLogDetail(logId) {
+        // 显示加载状态
+        document.getElementById('log-detail-content').innerHTML = `
+            <div class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        `;
+        
+        fetch(`/api/notification-logs/${logId}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.log) {
+                renderLogDetail(data.log);
+            } else {
+                document.getElementById('log-detail-content').innerHTML = `
+                    <div class="alert alert-danger">
+                        加载日志详情失败
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('加载日志详情失败:', error);
+            document.getElementById('log-detail-content').innerHTML = `
+                <div class="alert alert-danger">
+                    加载日志详情失败
+                </div>
+            `;
+        });
+        
+        // 显示模态框
+        const modal = new bootstrap.Modal(document.getElementById('logDetailModal'));
+        modal.show();
+    }
+
+    // 渲染日志详情
+    function renderLogDetail(log) {
+        const alertTypeText = log.alert_type === 'success' ? '成功' : '失败';
+        const alertTypeBadge = log.alert_type === 'success' ? 'bg-success' : 'bg-danger';
+        const statusIcon = log.status === 'sent' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+        const statusClass = log.status === 'sent' ? 'status-sent' : 'status-failed';
+        const statusText = log.status === 'sent' ? '已发送' : '发送失败';
+        
+        document.getElementById('log-detail-content').innerHTML = `
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6>日志ID</h6>
+                    <p>${log.id}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>任务ID</h6>
+                    <p>${log.task_id}</p>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6>任务名称</h6>
+                    <p>${log.task_name}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>预警类型</h6>
+                    <p><span class="badge ${alertTypeBadge}">${alertTypeText}</span></p>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6>邮件配置</h6>
+                    <p>${log.config_name || '-'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>发送状态</h6>
+                    <p class="${statusClass}">
+                        <i class="bi ${statusIcon} me-1"></i>${statusText}
+                    </p>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6>收件人</h6>
+                    <p>${log.recipients || '-'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>发送时间</h6>
+                    <p>${formatDateTime(log.sent_time)}</p>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <h6>邮件内容</h6>
+                    <div class="border rounded p-3 bg-light">
+                        <pre class="mb-0">${log.email_content || '-'}</pre>
+                    </div>
+                </div>
+            </div>
+            ${log.error_message ? `
+            <div class="row mb-3">
+                <div class="col-12">
+                    <h6>错误信息</h6>
+                    <div class="border rounded p-3 bg-danger bg-opacity-10">
+                        <pre class="mb-0 text-danger">${log.error_message}</pre>
+                    </div>
+                </div>
+            </div>
+            ` : ''}
+        `;
+    }
+
+    // 应用筛选条件
+    function applyFilters() {
+        currentFilters.task_id = document.getElementById('task-id-filter').value;
+        currentFilters.task_name = document.getElementById('task-name-filter').value;
+        currentFilters.alert_type = document.getElementById('alert-type-filter').value;
+        currentFilters.status = document.getElementById('status-filter').value;
+        
+        loadNotificationLogs(1);
+    }
+
+    // 重置筛选条件
+    function resetFilters() {
+        document.getElementById('task-id-filter').value = '';
+        document.getElementById('task-name-filter').value = '';
+        document.getElementById('alert-type-filter').value = '';
+        document.getElementById('status-filter').value = '';
+        
+        currentFilters = {
+            task_id: '',
+            task_name: '',
+            alert_type: '',
+            status: ''
+        };
+        
+        loadNotificationLogs(1);
+    }
+
+    // 刷新日志
+    function refreshLogs() {
+        loadNotificationLogs(currentPage);
+    }
+
+    // 更改每页显示数量
+    function changePerPage() {
+        perPage = parseInt(document.getElementById('per-page-select').value);
+        loadNotificationLogs(1);
+    }
+
+    // 格式化日期时间
+    function formatDateTime(dateString) {
+        if (!dateString) return '-';
+        
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // 显示提示消息
+    function showToast(message, type = 'info') {
+        const toastElement = document.getElementById('alertToast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // 设置消息内容
+        toastMessage.textContent = message;
+        
+        // 设置样式
+        toastElement.className = `toast text-bg-${type}`;
+        
+        // 显示提示
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
+</script>
+{% endblock %}
+            // 获取当前页面的日志数据
+            const params = new URLSearchParams();
+            params.append('page', currentPage);
+            params.append('per_page', perPage);
+            
+            if (currentFilters.task_id) {
+                params.append('task_id', currentFilters.task_id);
+            }
+            if (currentFilters.task_name) {
+                params.append('task_name', currentFilters.task_name);
+            }
+            if (currentFilters.alert_type) {
+                params.append('alert_type', currentFilters.alert_type);
+            }
+            if (currentFilters.status) {
+                params.append('status', currentFilters.status);
+            }
+            
+            fetch(`/api/notification-logs?${params.toString()}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.logs) {
+                    const log = data.logs.find(l => l.id === logId);
+                    if (log) {
+                        renderLogDetail(log);
+                        const modal = new bootstrap.Modal(document.getElementById('logDetailModal'));
+                        modal.show();
+                    } else {
+                        showToast('未找到指定的日志记录', 'warning');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('获取日志详情失败:', error);
+                showToast('获取日志详情失败', 'danger');
+            });
+        }
+
+        // 渲染日志详情
+        function renderLogDetail(log) {
+            const alertTypeText = log.alert_type === 'success' ? '成功' : '失败';
+            const alertTypeBadge = log.alert_type === 'success' ? 'bg-success' : 'bg-danger';
+            const statusIcon = log.status === 'sent' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+            const statusClass = log.status === 'sent' ? 'status-sent' : 'status-failed';
+            const statusText = log.status === 'sent' ? '已发送' : '发送失败';
+            
+            const detailHTML = `
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>日志ID</h6>
+                        <p>${log.id}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>任务ID</h6>
+                        <p>${log.task_id}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>任务名称</h6>
+                        <p>${log.task_name}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>预警类型</h6>
+                        <p><span class="badge ${alertTypeBadge}">${alertTypeText}</span></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>邮件配置</h6>
+                        <p>${log.config_name || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>发送状态</h6>
+                        <p class="${statusClass}">
+                            <i class="bi ${statusIcon} me-1"></i>${statusText}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6>收件人</h6>
+                        <p>${log.recipients || '-'}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6>邮件主题</h6>
+                        <p>${log.subject || '-'}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6>邮件内容</h6>
+                        <div class="border rounded p-3 bg-light" style="max-height: 200px; overflow-y: auto;">
+                            <pre class="mb-0">${log.body || '-'}</pre>
+                        </div>
+                    </div>
+                </div>
+                ${log.error_message ? `
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6>错误信息</h6>
+                        <div class="border rounded p-3 bg-light text-danger">
+                            <pre class="mb-0">${log.error_message}</pre>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6>发送时间</h6>
+                        <p>${formatDateTime(log.sent_time)}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('log-detail-content').innerHTML = detailHTML;
+        }
+
+        // 应用筛选条件
+        function applyFilters() {
+            currentFilters.task_id = document.getElementById('task-id-filter').value;
+            currentFilters.alert_type = document.getElementById('alert-type-filter').value;
+            currentFilters.status = document.getElementById('status-filter').value;
+            
+            loadNotificationLogs(1);
+        }
+
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('task-id-filter').value = '';
+            document.getElementById('alert-type-filter').value = '';
+            document.getElementById('status-filter').value = '';
+            
+            currentFilters = {
+                task_id: '',
+                alert_type: '',
+                status: ''
+            };
+            
+            loadNotificationLogs(1);
+        }
+
+        // 更改每页显示数量
+        function changePerPage() {
+            perPage = parseInt(document.getElementById('per-page-select').value);
+            loadNotificationLogs(1);
+        }
+
+        // 刷新日志
+        function refreshLogs() {
+            loadNotificationLogs(currentPage);
+        }
+
+        // 格式化日期时间
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return '-';
+            
+            // 解析时间字符串，处理数据库返回的时间格式
+            const date = new Date(dateTimeString);
+            
+            // 检查日期是否有效
+            if (isNaN(date.getTime())) {
+                return dateTimeString; // 如果无法解析，返回原始字符串
+            }
+            
+            // 使用本地时间方法获取各部分，确保显示本地时间
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // 显示提示消息
+        function showToast(message, type = 'info') {
+            const toastElement = document.getElementById('alertToast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            // 设置消息内容
+            toastMessage.textContent = message;
+            
+            // 设置样式
+            toastElement.className = `toast`;
+            toastElement.classList.add(`bg-${type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'primary'}`);
+            toastElement.classList.add('text-white');
+            
+            // 显示提示
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+    </script>
+</body>
+</html>

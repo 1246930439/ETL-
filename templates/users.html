@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - 任务调度系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 工具栏 -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        <div class="btn-toolbar mb-2 mb-md-0">
+        </div>
+    </div>
+
+    <!-- 用户列表 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-people-fill me-2 text-primary"></i>用户列表
+            </h5>
+            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                <i class="bi bi-person-plus me-1"></i>添加用户
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="users-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 动态加载用户数据 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 创建用户模态框 -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-light text-dark">
+                <h6 class="modal-title" id="createUserModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>添加新用户
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <form id="create-user-form">
+                    <div class="mb-3">
+                        <label for="new-username" class="form-label small">用户名</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control border-start-0" id="new-username" placeholder="请输入用户名" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-user-password" class="form-label small">密码</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" class="form-control border-start-0" id="new-user-password" placeholder="请输入密码" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="createUser()">创建用户</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除用户确认模态框 -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-light text-dark">
+                <h6 class="modal-title" id="deleteUserModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>删除用户
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="mb-0">确定要删除用户 <strong id="delete-username"></strong> 吗？</p>
+                <p class="text-danger small mt-2">注意：此操作不可恢复！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirm-delete-btn">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 设置AJAX默认配置
+    $.ajaxSetup({
+        xhrFields: { withCredentials: true },
+        crossDomain: true
+    });
+    
+    // 加载用户列表
+    loadUsers();
+    
+    // 绑定删除用户按钮事件
+    $(document).on('click', '.delete-user-btn', function() {
+        var userId = $(this).data('user-id');
+        var username = $(this).data('username');
+        $('#delete-username').text(username);
+        $('#confirm-delete-btn').data('user-id', userId);
+        $('#deleteUserModal').modal('show');
+    });
+    
+    // 确认删除用户
+    $('#confirm-delete-btn').on('click', function() {
+        var userId = $(this).data('user-id');
+        deleteUser(userId);
+    });
+});
+
+// 加载用户列表
+function loadUsers() {
+    $.get('/api/users', function(users) {
+        const tbody = $('#users-table tbody');
+        tbody.empty();
+        
+        users.forEach(function(user) {
+            // 不显示删除当前登录用户的按钮
+            const isCurrentUser = user.username === '{{ session.get("username", "") }}';
+            const deleteButton = isCurrentUser ? 
+                '<span class="text-muted small">当前用户</span>' : 
+                `<button class="btn btn-danger btn-sm delete-user-btn" data-user-id="${user.id}" data-username="${user.username}" title="删除">
+                    <i class="bi bi-trash"></i>
+                </button>`;
+            
+            tbody.append(`
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${new Date(user.created_at).toLocaleString()}</td>
+                    <td>${deleteButton}</td>
+                </tr>
+            `);
+        });
+    }).fail(function(xhr) {
+        console.error('加载用户列表失败:', xhr);
+        showToast('加载用户列表失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'), 'error');
+    });
+}
+
+// 创建用户
+function createUser() {
+    const username = $('#new-username').val();
+    const password = $('#new-user-password').val();
+    
+    if (!username || !password) {
+        showToast('请填写完整的用户名和密码', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/users',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            username: username,
+            password: password
+        }),
+        success: function(response) {
+            showToast(response.message, 'success');
+            $('#createUserModal').modal('hide');
+            $('#create-user-form')[0].reset();
+            loadUsers(); // 重新加载用户列表
+        },
+        error: function(xhr) {
+            showToast('创建用户失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'), 'error');
+        }
+    });
+}
+
+// 删除用户
+function deleteUser(userId) {
+    $.ajax({
+        url: `/api/users/${userId}`,
+        method: 'DELETE',
+        success: function(response) {
+            showToast(response.message, 'success');
+            $('#deleteUserModal').modal('hide');
+            loadUsers(); // 重新加载用户列表
+        },
+        error: function(xhr) {
+            console.error('删除用户失败:', xhr);
+            showToast('删除用户失败: ' + (xhr.responseJSON ? xhr.responseJSON.error : '未知错误'), 'error');
+        }
+    });
+}
+
+</script>
+{% endblock %}

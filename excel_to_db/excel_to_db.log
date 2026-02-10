@@ -1,0 +1,222 @@
+2025-12-05 15:18:23,664 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:18:23,665 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:18:23,665 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:18:23,665 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:18:23,665 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:18:23,665 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:18:26,890 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:18:26,903 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:18:26,903 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:18:26,903 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:18:26,917 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:18:26,929 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:18:26,929 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:18:26,929 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:18:26,960 INFO __main__ Database connection created successfully
+2025-12-05 15:18:26,960 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:18:26,960 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:18:26,976 INFO __main__ Database connection created successfully
+2025-12-05 15:18:26,976 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:18:26,977 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:18:27,289 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:18:27,300 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:18:29,049 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:18:29,049 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:18:29,049 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:18:29,050 INFO __main__ Excel to DB script completed
+2025-12-05 15:18:29,050 INFO __main__ Excel to DB script completed
+2025-12-05 15:18:54,060 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:18:54,061 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:18:54,061 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:18:54,061 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:18:54,065 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:18:54,065 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:18:54,065 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:18:54,065 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:18:56,889 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:18:56,901 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:18:56,901 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:18:56,902 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:18:56,919 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:18:56,931 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:18:56,931 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:18:56,931 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:18:56,950 INFO __main__ Database connection created successfully
+2025-12-05 15:18:56,950 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:18:56,950 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:18:56,973 INFO __main__ Database connection created successfully
+2025-12-05 15:18:56,973 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:18:56,973 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:18:57,487 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:18:57,501 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:18:59,027 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:18:59,028 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:18:59,028 INFO __main__ Excel to DB script completed
+2025-12-05 15:18:59,078 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:18:59,079 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:18:59,080 INFO __main__ Excel to DB script completed
+2025-12-05 15:19:24,645 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:19:24,646 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:19:24,646 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:19:24,646 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:19:25,381 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:19:25,382 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:19:25,382 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:19:25,382 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:19:28,767 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:19:28,784 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:19:28,784 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:19:28,784 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:19:28,842 INFO __main__ Database connection created successfully
+2025-12-05 15:19:28,842 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:19:28,842 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:19:29,447 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:19:29,548 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:19:29,564 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:19:29,564 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:19:29,564 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:19:29,626 INFO __main__ Database connection created successfully
+2025-12-05 15:19:29,627 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:19:29,627 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:19:29,658 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:19:31,419 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:19:31,419 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:19:31,420 INFO __main__ Excel to DB script completed
+2025-12-05 15:19:31,581 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:19:31,581 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:19:31,582 INFO __main__ Excel to DB script completed
+2025-12-05 15:19:55,488 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:19:55,489 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:19:55,489 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:19:55,490 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:19:55,631 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:19:55,632 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:19:55,632 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:19:55,632 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:19:59,568 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:19:59,583 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:19:59,583 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:19:59,584 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:19:59,632 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:19:59,637 INFO __main__ Database connection created successfully
+2025-12-05 15:19:59,638 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:19:59,638 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:19:59,647 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:19:59,648 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:19:59,648 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:19:59,708 INFO __main__ Database connection created successfully
+2025-12-05 15:19:59,708 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:19:59,708 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:20:00,087 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:20:00,102 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:20:02,013 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:20:02,014 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:20:02,014 INFO __main__ Excel to DB script completed
+2025-12-05 15:20:02,091 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:20:02,092 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:20:02,092 INFO __main__ Excel to DB script completed
+2025-12-05 15:20:26,074 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:20:26,076 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:20:26,076 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:20:26,076 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:20:26,122 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:20:26,123 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:20:26,123 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:20:26,123 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:20:29,916 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:20:29,930 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:20:29,931 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:20:29,931 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:20:29,978 INFO __main__ Database connection created successfully
+2025-12-05 15:20:29,979 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:20:29,979 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:20:29,987 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:20:30,004 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:20:30,004 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:20:30,005 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:20:30,062 INFO __main__ Database connection created successfully
+2025-12-05 15:20:30,062 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:20:30,062 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:20:30,505 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:20:30,522 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:20:32,518 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:20:32,518 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:20:32,519 INFO __main__ Excel to DB script completed
+2025-12-05 15:20:32,545 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:20:32,546 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:20:32,546 INFO __main__ Excel to DB script completed
+2025-12-05 15:20:56,257 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:20:56,258 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:20:56,258 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:20:56,259 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:20:57,004 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:20:57,005 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:20:57,005 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:20:57,005 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:21:00,063 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:21:00,074 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:21:00,074 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:21:00,074 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:21:00,129 INFO __main__ Database connection created successfully
+2025-12-05 15:21:00,129 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:21:00,129 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:21:00,707 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:21:00,789 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:21:00,803 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:21:00,803 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:21:00,803 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:21:00,856 INFO __main__ Database connection created successfully
+2025-12-05 15:21:00,856 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:21:00,856 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:21:00,892 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:21:02,684 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:21:02,684 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:21:02,685 INFO __main__ Excel to DB script completed
+2025-12-05 15:21:02,916 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:21:02,916 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:21:02,917 INFO __main__ Excel to DB script completed
+2025-12-05 15:21:27,332 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:21:27,333 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:21:27,333 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:21:27,334 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:21:28,165 INFO __main__ Excel to DB script started from command line
+2025-12-05 15:21:28,166 INFO __main__ Starting Excel to DB import process
+2025-12-05 15:21:28,166 INFO __main__ Step 1: Reading Excel data
+2025-12-05 15:21:28,166 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-05 15:21:31,485 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:21:31,502 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:21:31,502 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:21:31,503 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:21:31,559 INFO __main__ Database connection created successfully
+2025-12-05 15:21:31,559 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:21:31,559 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:21:32,189 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:21:32,407 INFO __main__ Successfully read 30920 rows from Excel file
+2025-12-05 15:21:32,423 INFO __main__ First 5 rows of data preview completed
+2025-12-05 15:21:32,424 INFO __main__ Step 2: Creating database connection
+2025-12-05 15:21:32,424 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-05 15:21:32,481 INFO __main__ Database connection created successfully
+2025-12-05 15:21:32,481 INFO __main__ Step 3: Inserting data to database
+2025-12-05 15:21:32,481 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-05 15:21:32,508 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-05 15:21:34,278 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:21:34,278 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:21:34,278 INFO __main__ Excel to DB script completed
+2025-12-05 15:21:34,517 INFO __main__ Successfully inserted 30920 rows into table dwd_sale_shopify_order_di
+2025-12-05 15:21:34,517 INFO __main__ Excel to DB import process completed successfully
+2025-12-05 15:21:34,518 INFO __main__ Excel to DB script completed
+2025-12-09 10:08:06,644 INFO __main__ Excel to DB script started from command line
+2025-12-09 10:08:06,645 INFO __main__ Starting Excel to DB import process
+2025-12-09 10:08:06,645 INFO __main__ Step 1: Reading Excel data
+2025-12-09 10:08:06,646 INFO __main__ Reading Excel data from: C:\Users\Lenovo\Desktop\独立站数据.xlsx
+2025-12-09 10:08:09,471 INFO __main__ Successfully read 30887 rows from Excel file
+2025-12-09 10:08:09,482 INFO __main__ First 5 rows of data preview completed
+2025-12-09 10:08:09,482 INFO __main__ Step 2: Creating database connection
+2025-12-09 10:08:09,482 INFO __main__ Creating database connection to mysql database: erp_system
+2025-12-09 10:08:09,523 INFO __main__ Database connection created successfully
+2025-12-09 10:08:09,524 INFO __main__ Step 3: Inserting data to database
+2025-12-09 10:08:09,524 INFO __main__ Inserting data into table: dwd_sale_shopify_order_di
+2025-12-09 10:08:09,771 INFO __main__ Cleared all data from table dwd_sale_shopify_order_di
+2025-12-09 10:08:11,163 INFO __main__ Successfully inserted 30887 rows into table dwd_sale_shopify_order_di
+2025-12-09 10:08:11,163 INFO __main__ Excel to DB import process completed successfully
+2025-12-09 10:08:11,164 INFO __main__ Excel to DB script completed
